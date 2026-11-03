@@ -1,22 +1,24 @@
+using AIGarage.Mobile.ViewModels;
+
 namespace AIGarage.Mobile;
 
 public partial class App : Application
 {
     private readonly AppShell _shell;
-    private readonly MainPage _page;
+    private readonly MainViewModel _viewModel;
 
-    public App(AppShell shell, MainPage page)
+    public App(AppShell shell, MainViewModel viewModel)
     {
         InitializeComponent();
         _shell = shell;
-        _page = page;
+        _viewModel = viewModel;
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
         var window = new Window(_shell);
-        window.Stopped += async (_, _) => await _page.LockAsync();
-        window.Destroying += async (_, _) => await _page.LockAsync();
+        window.Stopped += async (_, _) => await _viewModel.LockAsync();
+        window.Destroying += async (_, _) => await _viewModel.LockAsync();
         return window;
     }
 }

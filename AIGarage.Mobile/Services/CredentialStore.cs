@@ -18,7 +18,7 @@ public sealed record BrokerCredentials(string Username, string Password, string 
     }
 }
 
-public sealed class CredentialStore
+public sealed class CredentialStore : ICredentialStore
 {
     private const string SettingsKey = "mqtt.settings.v1";
     private const string CredentialsKey = "mqtt.credentials.v1";

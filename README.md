@@ -5,15 +5,27 @@ Prvý lokálny základ pre ESP32 DevKit a .NET MAUI aplikáciu na Android.
 pripojenie a sledovať telemetriu. Fyzické otvorenie je v tejto etape dostupné
 iba na Androide 11+ so zaregistrovanou silnou biometriou.
 
+## Dokumentácia
+
+- [Používateľský návod](docs/USER_GUIDE.md): príprava, prihlásenie, ovládanie a riešenie problémov.
+- [Testovanie](docs/TESTING.md): automatické kontroly, buildy, manuálne scenáre a záznam výsledkov.
+- [Architektúra a plán](docs/ARCHITECTURE.md): rozdelenie zodpovedností a ďalšie kroky pre Arduino/Raspberry Pi.
+- [ESP32](firmware/README.md): zapojenie, provisioning, zostavenie a bezpečnostné hranice.
+- [Overenie A1](docs/validation/2026-11-03-A1.md): vykonané kontroly a otvorené praktické skúšky.
+
+Aktuálne je implementovaný krok **A1**: obrazovka používa `MainViewModel`,
+testovateľné rozhrania a kompilované dátové väzby. MQTT protokol a ESP32
+firmware sa týmto krokom nemenia. Viac zariadení a simulátor sú ďalšie kroky.
+
 ## Súbory
 
 - `AIGarage.Mobile`: obrazovka garáže, nastavenia, SecureStorage, biometria,
-  MQTTnet 4.3.7.1207, TLS a podpísané potvrdenia príkazov.
+  ViewModel, MQTTnet 4.3.7.1207, TLS a podpísané potvrdenia príkazov.
 - `AIGarage.Core`: konfigurácia, modely, HMAC protokol, kontrola čerstvosti
   a ochrana pred opakovaním správ, bez závislosti na MAUI.
 - `AIGarage.Core.Tests`: spustiteľné kontroly protokolu bez testovacích balíčkov.
 - `AIGarage.Mobile.Tests`: kontroly skutočného MQTT servisu s riadeným
-  transportom a lokálnou TLS skúškou, bez MAUI a bez fyzického zariadenia.
+  transportom, lokálnou TLS skúškou a kontroly ViewModelu, bez MAUI a fyzického zariadenia.
 - `firmware`: ESP32 firmware pre PlatformIO; podrobnosti v `firmware/README.md`.
 
 ## Prvé spustenie vo Visual Studiu 2026
@@ -142,17 +154,28 @@ otvorenia treba ďalší koncový senzor alebo spätnú väzbu pohonu.
 Príkazy spustiť z priečinka `AIGarage`:
 
 ```powershell
+.\scripts\Test.ps1
+# S buildmi oboch podporovaných cieľov:
+.\scripts\Test.ps1 -BuildAndroid -BuildWindows
+```
+
+Samostatné príkazy:
+
+```powershell
 dotnet run --project AIGarage.Core.Tests -c Release
 dotnet run --project AIGarage.Mobile.Tests -c Release
 dotnet build AIGarage.Mobile -f net10.0-android
 dotnet build AIGarage.Mobile -f net10.0-windows10.0.19041.0
 ```
 
-Firmware obsahuje čisté C++ kontroly interlocku a kompiláciu pre ESP32.
-Pri príprave 10. 10. 2026 prešlo 77 kontrol spoločného protokolu a 25 kontrol
-MQTT servisu vrátane odmietnutia nedôveryhodného TLS certifikátu. Android a
-Windows Debug buildy skončili bez chýb aj upozornení. ESP32 PlatformIO release
-build prešiel; 5 compile-time C++ scenárov overilo 26 bezpečnostných podmienok.
+Aktuálne testovacie programy obsahujú 77 kontrol spoločného protokolu a 52 kontrol
+mobilnej časti (25 MQTT + 27 ViewModel). Zahŕňajú odmietnutie nedôveryhodného TLS
+certifikátu, zrušenie prihlasovania/otvorenia pri prechode do pozadia a blokovanie
+príkazu po expirácii údajov počas biometrie. Podrobnosti sú v `docs/TESTING.md`.
+
+Firmware obsahuje čisté C++ kontroly interlocku. Pri príprave 10. 10. 2026
+prešiel ESP32 PlatformIO release build; 5 compile-time scenárov overilo 26
+bezpečnostných podmienok. Tento historický výsledok nepredstavuje nové meranie hardvéru.
 Kontroly `.Tests` sú spustiteľné programy, nie testy pre Visual Studio Test Explorer.
 
 Úspešná kompilácia alebo kontroly nepreukazujú správne elektrické zapojenie,

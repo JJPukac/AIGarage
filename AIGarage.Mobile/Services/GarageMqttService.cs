@@ -10,7 +10,7 @@ using MQTTnet.Protocol;
 
 namespace AIGarage.Mobile.Services;
 
-public sealed class GarageMqttService
+public sealed class GarageMqttService : IGarageService
 {
     private readonly object _stateLock = new();
     private readonly SemaphoreSlim _operations = new(1, 1);

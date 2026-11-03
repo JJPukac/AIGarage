@@ -205,5 +205,7 @@ await Test("broker denied subscription invalidates and disposes connection", asy
 
 await Test("real loopback TLS rejects fresh untrusted certificate", LocalTlsCheck.VerifyUntrustedCertificateRejectedAsync);
 
+await MainViewModelChecks.RunAsync(Test);
+
 Console.WriteLine($"\n{passed} passed, {failures.Count} failed.");
 if (failures.Count != 0) Environment.ExitCode = 1;

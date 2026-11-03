@@ -10,7 +10,13 @@
   <ItemGroup>
     <ProjectReference Include="..\AIGarage.Core\AIGarage.Core.csproj" />
     <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <Compile Include="..\AIGarage.Mobile\Services\GarageMqttService.cs" Link="Mobile\GarageMqttService.cs" />
     <Compile Include="..\AIGarage.Mobile\Services\CredentialStore.cs" Link="Mobile\CredentialStore.cs" />
+    <Compile Include="..\AIGarage.Mobile\Services\IGarageService.cs" Link="Mobile\IGarageService.cs" />
+    <Compile Include="..\AIGarage.Mobile\Services\ICredentialStore.cs" Link="Mobile\ICredentialStore.cs" />
+    <Compile Include="..\AIGarage.Mobile\Services\BiometricGate.cs" Link="Mobile\BiometricGate.cs" />
+    <Compile Include="..\AIGarage.Mobile\Services\IUserInteraction.cs" Link="Mobile\IUserInteraction.cs" />
+    <Compile Include="..\AIGarage.Mobile\ViewModels\MainViewModel.cs" Link="Mobile\MainViewModel.cs" />
   </ItemGroup>
 </Project>
