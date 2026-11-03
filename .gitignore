@@ -1,0 +1,19 @@
+.vs/
+**/bin/
+**/obj/
+**/.pio/
+firmware/include/secrets.h
+.tools/
+*.user
+*.apk
+*.aab
+
+# Local credentials and signing keys
+.env
+.env.*
+!.env.example
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore

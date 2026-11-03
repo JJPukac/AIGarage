@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UseAppHost>false</UseAppHost>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AIGarage.Core\AIGarage.Core.csproj" />
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
+    <Compile Include="..\AIGarage.Mobile\Services\GarageMqttService.cs" Link="Mobile\GarageMqttService.cs" />
+    <Compile Include="..\AIGarage.Mobile\Services\CredentialStore.cs" Link="Mobile\CredentialStore.cs" />
+  </ItemGroup>
+</Project>

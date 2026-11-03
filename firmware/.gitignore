@@ -1,0 +1,6 @@
+.pio/
+.venv/
+.platformio/
+include/secrets.h
+tests/*.exe
+tests/*.obj

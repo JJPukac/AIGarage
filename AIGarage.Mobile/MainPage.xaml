@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AIGarage.Mobile.MainPage">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="14" MaximumWidthRequest="640">
+            <Label Text="AI Garage" FontSize="30" FontAttributes="Bold" SemanticProperties.HeadingLevel="Level1" />
+            <Label x:Name="ConnectionLabel" Text="Odpojené. Nastavte pripojenie a prihláste sa." />
+            <Border Padding="18" StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Garáž" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="DoorLabel" Text="Stav neznámy" FontSize="24" />
+                    <Label x:Name="FreshnessLabel" Text="Čakám na údaje zo zariadenia." />
+                    <Button x:Name="OpenButton" Text="Otvoriť garáž" IsEnabled="False" Clicked="OnOpenClicked"
+                            SemanticProperties.Hint="Vyžaduje aktuálny zatvorený stav a biometrické potvrdenie." />
+                    <Label Text="Pri jednom senzore vieme potvrdiť iba zatvorenú polohu. Pohyb po impulze je odhad." FontSize="12" />
+                </VerticalStackLayout>
+            </Border>
+            <Border Padding="18" StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Prostredie" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="TemperatureLabel" Text="Teplota: —" />
+                    <Label x:Name="HumidityLabel" Text="Vlhkosť: —" />
+                    <Label x:Name="PressureLabel" Text="Tlak: —" />
+                </VerticalStackLayout>
+            </Border>
+            <Label x:Name="ResultLabel" Text="" />
+            <Label Text="Pripojenie a prihlásenie" FontSize="20" FontAttributes="Bold" />
+            <Picker x:Name="ModePicker" Title="Režim pripojenia" SelectedIndex="0">
+                <Picker.Items>
+                    <x:String>Cloud (Štádium 1)</x:String>
+                    <x:String>Súkromný broker (Štádium 2)</x:String>
+                </Picker.Items>
+            </Picker>
+            <Entry x:Name="HostEntry" Placeholder="Hostname MQTT brokera" Keyboard="Url" IsTextPredictionEnabled="False" />
+            <Entry x:Name="PortEntry" Placeholder="TLS port" Text="8883" Keyboard="Numeric" />
+            <Entry x:Name="RootEntry" Placeholder="Koreň tém" Text="aigarage/garage1" IsTextPredictionEnabled="False" />
+            <Entry x:Name="UsernameEntry" Placeholder="MQTT používateľ" IsTextPredictionEnabled="False" />
+            <Entry x:Name="PasswordEntry" Placeholder="MQTT heslo" IsPassword="True" IsTextPredictionEnabled="False" />
+            <Entry x:Name="HmacEntry" Placeholder="HMAC kľúč (64 hex znakov)" IsPassword="True" IsTextPredictionEnabled="False" />
+            <Label Text="Údaje sa uložia bezpečne v zariadení. TLS a overenie certifikátu sú povinné v oboch režimoch." FontSize="12" />
+            <Button x:Name="LoginButton" Text="Uložiť a pripojiť" Clicked="OnLoginClicked" />
+            <Button x:Name="UnlockButton" Text="Prihlásiť uloženými údajmi cez biometriu" Clicked="OnUnlockClicked" />
+            <Button x:Name="LogoutButton" Text="Odpojiť a uzamknúť" Clicked="OnLogoutClicked" />
+            <Button x:Name="ForgetButton" Text="Odstrániť uložené údaje" Clicked="OnForgetClicked" />
+            <Label x:Name="BiometricLabel" FontSize="12" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AIGarage.Core.Tests/AIGarage.Core.Tests.csproj" />
+  <Project Path="AIGarage.Core/AIGarage.Core.csproj" />
+  <Project Path="AIGarage.Mobile.Tests/AIGarage.Mobile.Tests.csproj" />
+  <Project Path="AIGarage.Mobile/AIGarage.Mobile.csproj" />
+</Solution>
