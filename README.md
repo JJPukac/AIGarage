@@ -1,5 +1,7 @@
 # AI Garage — Štádium 1
 
+Repozitár: [Pukac/AIGarage](https://github.com/Pukac/AIGarage).
+
 Prvý lokálny základ pre ESP32 DevKit a .NET MAUI aplikáciu na Android.
 Šablóna projektu zostáva multiplatformová; na Windows je možné nastavovať
 pripojenie a sledovať telemetriu. Fyzické otvorenie je v tejto etape dostupné
@@ -10,6 +12,7 @@ iba na Androide 11+ so zaregistrovanou silnou biometriou.
 - [Používateľský návod](docs/USER_GUIDE.md): príprava, prihlásenie, ovládanie a riešenie problémov.
 - [Testovanie](docs/TESTING.md): automatické kontroly, buildy, manuálne scenáre a záznam výsledkov.
 - [Architektúra a plán](docs/ARCHITECTURE.md): rozdelenie zodpovedností a ďalšie kroky pre Arduino/Raspberry Pi.
+- [Git workflow](docs/GIT_WORKFLOW.md): správny účet, malé commity a overenie pushu.
 - [ESP32](firmware/README.md): zapojenie, provisioning, zostavenie a bezpečnostné hranice.
 - [Overenie A1](docs/validation/2026-11-03-A1.md): vykonané kontroly a otvorené praktické skúšky.
 
