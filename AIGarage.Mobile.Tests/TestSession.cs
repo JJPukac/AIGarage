@@ -1,4 +1,5 @@
 using AIGarage.Core.Configuration;
+using AIGarage.Core.Devices;
 using AIGarage.Core.Models;
 using AIGarage.Core.Protocol;
 using AIGarage.Mobile.Services;
@@ -11,6 +12,7 @@ internal sealed class TestSession : IAsyncDisposable
     public static readonly byte[] Key = Enumerable.Range(0, 32).Select(i => (byte)i).ToArray();
     public static readonly BrokerCredentials Credentials = new("mobile", "test-password", Convert.ToHexString(Key));
     public static readonly MqttSettings Settings = new() { Host = "localhost" };
+    public static readonly DeviceProfile Profile = new() { Id = Guid.Parse("21d46e8b-814c-4083-8073-628113dba780"), Name = "Test garage", Connection = Settings };
     public const string Boot = "0123456789abcdef0123456789abcdef";
     public GarageMqttService Service { get; }
     public FakeMqttClient Fake { get; private set; } = null!;
@@ -28,7 +30,7 @@ internal sealed class TestSession : IAsyncDisposable
     public static async Task<TestSession> CreateAsync()
     {
         TestSession session = new();
-        await session.Service.ConnectAsync(Settings, Credentials, CancellationToken.None);
+        await session.Service.ConnectAsync(Profile, Credentials, CancellationToken.None);
         return session;
     }
 

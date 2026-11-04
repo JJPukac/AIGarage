@@ -17,7 +17,7 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-        builder.Services.AddSingleton<ICredentialStore, CredentialStore>();
+        builder.Services.AddSingleton<IDeviceProfileStore, DeviceProfileStore>();
         builder.Services.AddSingleton<IGarageService, GarageMqttService>();
         builder.Services.AddSingleton<IUserInteraction, MauiUserInteraction>();
         builder.Services.AddSingleton<IUiDispatcher, MauiUiDispatcher>();

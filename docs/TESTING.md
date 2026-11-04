@@ -21,12 +21,12 @@ kde je `AIGarage.slnx`. Skript vie koreň určiť aj pri spustení z iného prie
 .\scripts\Test.ps1
 ```
 
-Skript zastaví vykonávanie pri prvom zlyhaní. Počet kontrol v kroku A1:
+Skript zastaví vykonávanie pri prvom zlyhaní. Počet kontrol v kroku A2:
 
 | Projekt | Počet | Overovaný rozsah |
 |---|---:|---|
-| `AIGarage.Core.Tests` | 77 | Formát správ, HMAC, nesprávne témy/kľúče, replay, čas, relácie a konfigurácia. |
-| `AIGarage.Mobile.Tests` | 52 | 25 kontrol MQTT servisu a 27 kontrol ViewModelu/prihlasovania/uzamknutia. |
+| `AIGarage.Core.Tests` | 98 | Pôvodných 77 kontrol protokolu a konfigurácie + 21 kontrol profilov, katalógu, funkcií a limitov. |
+| `AIGarage.Mobile.Tests` | 84 | Pôvodných 25 kontrol MQTT + 27 ViewModelu, 16 kontrol úložiska a 16 scenárov prepínania/funkcií. |
 
 Samostatné spustenie:
 
@@ -45,10 +45,16 @@ Po predchádzajúcom obnovení závislostí možno použiť `-NoRestore`:
 .\scripts\Test.ps1 -NoRestore
 ```
 
-Mobilné kontroly kompilujú rovnaký zdroj `GarageMqttService`, `CredentialStore`
+Mobilné kontroly kompilujú rovnaký zdroj `GarageMqttService`, `DeviceProfileStore`
 a `MainViewModel` ako aplikácia. Bežné testy používajú riadeného MQTT klienta,
 testovacie úložisko a falošnú biometriu. Nepotvrdzujú funkčnosť Android
 SecureStorage ani reálny biometrický dialóg.
+
+Kontroly úložiska používajú skutočnú implementáciu `DeviceProfileStore`
+s náhradou platformových Preferences/SecureStorage. Overujú oddelenie
+credentials, nezhodu verejných a šifrovaných metadát, čiastočné zápisy, migráciu
+aj zachovanie ostatných profilov pri odstránení. Scenáre A → B → A používajú
+skutočný MQTT servis s riadeným klientom a overujú replay aj po návrate.
 
 Jedna TLS kontrola používa skutočný MQTTnet klient a dočasný lokálny server
 na loopback adrese s nedôveryhodným certifikátom. Musí dostať chybu overenia
@@ -79,7 +85,7 @@ kontroly. Súbor `tests/GarageSafetyTests.cpp` overuje 26 podmienok v piatich
 compile-time scenároch: debounce, replay/čas vrátane rollbacku, dĺžku impulzu,
 blokáciu po neúspešnom pohybe, reconnect, návrat a pretečenie počítadla času.
 
-Krok A1 firmware nemení. Pred nasadením zostavte presne tú verziu, ktorú budete
+Kroky A1 ani A2 firmware nemenia. Pred nasadením zostavte presne tú verziu, ktorú budete
 nahrávať. Nezamieňajte úspešnú kompiláciu s meraním skutočného GPIO impulzu.
 
 ## 4. Manuálna kontrola obrazovky a telefónu
@@ -101,6 +107,13 @@ Pre každý riadok zaznamenajte dátum, commit, zariadenie/OS a výsledok.
 | UI-10 | Opakovane stláčať otvorenie počas rozpracovanej operácie. | Najviac jedno odoslanie z tejto operácie, formulár blokovaný. |
 | UI-11 | Zrušiť odstránenie údajov. | Údaje zostanú uložené. |
 | UI-12 | Potvrdiť odstránenie údajov. | Relácia uzamknutá, ďalšie prihlásenie vyžaduje nové údaje. |
+| UI-13 | Uložiť dva vlastné testovacie profily s odlišnými témami/kľúčmi. | Dva názvy v zozname; údaje každého sa načítajú iba pre jeho profil. |
+| UI-14 | Pri pripojení A vybrať B a potvrdiť načítanie. | Už od výberu je otvorenie blokované; načítanie odpojí A, vymaže tajné polia a vyžaduje nové prihlásenie B. |
+| UI-15 | Vypnúť otváranie profilu, uložiť a priviesť čerstvé `closed`. | Telemetria sa zobrazuje, tlačidlo otvorenia je skryté a žiadny príkaz nevznikne. |
+| UI-16 | Prejsť z A1 s uloženými údajmi na A2. | Garáž 1 sa zobrazí bez čítania credentials; po overení endpointu a biometrickom prihlásení sa migrácia dokončí. |
+| UI-17 | Odstrániť profil A pri existujúcom B. | Potvrdenie menuje A; B a jeho biometrické prihlásenie fungujú ďalej. |
+| UI-18 | Zadať duplicitný názov alebo endpoint/tému. | Uloženie sa odmietne; pôvodné profily zostanú zachované. |
+| UI-19 | Počas prepínania profilu poslať aplikáciu do pozadia. | Neobnoví sa prihlásenie, neodošle sa otvorenie, tajné polia ostanú prázdne. |
 
 ## 5. Broker, relé a pohon
 
@@ -134,7 +147,7 @@ Príklad záznamu bez tajných údajov:
 ```text
 Dátum / commit:
 SDK / OS / telefón / doska / firmware:
-Automatické kontroly: Core __/77, Mobile __/52
+Automatické kontroly: Core __/98, Mobile __/84
 Windows build: PASS / FAIL / NOT RUN
 Android build: PASS / FAIL / NOT RUN
 Firmware build: PASS / FAIL / NOT RUN

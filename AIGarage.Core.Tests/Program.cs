@@ -211,6 +211,8 @@ foreach (string invalidTopic in new[] { "", "/aigarage", "aigarage/", "aigarage/
 Test("invalid broker port rejected", () => Throws<ArgumentOutOfRangeException>(() => new MqttSettings { Host = "example.com", Port = 65536 }.Validate()));
 Test("unknown mode rejected", () => Throws<ArgumentException>(() => new MqttSettings { Host = "example.com", Mode = (InfrastructureMode)999 }.Validate()));
 
+DeviceCatalogChecks.Run(Test);
+
 Console.WriteLine($"\n{passed} passed, {failures.Count} failed.");
 if (failures.Count != 0) Environment.ExitCode = 1;
 
