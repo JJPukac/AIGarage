@@ -46,7 +46,7 @@ internal static class LocalTlsCheck
 
         GarageMqttService service = new();
         Exception? failure = null;
-        try { await service.ConnectAsync(TestSession.Settings with { Host = "127.0.0.1", Port = port }, TestSession.Credentials, timeout.Token); }
+        try { await service.ConnectAsync(TestSession.Profile with { Connection = TestSession.Settings with { Host = "127.0.0.1", Port = port } }, TestSession.Credentials, timeout.Token); }
         catch (Exception exception) { failure = exception; }
         finally { await service.DisconnectAsync(); listener.Stop(); }
         await endpoint;

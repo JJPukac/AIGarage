@@ -183,7 +183,7 @@ await Test("reconnect preserves replay watermark and ignores old client messages
     GarageTelemetry initial = session.Telemetry();
     await session.DeliverTelemetryAsync(initial);
     FakeMqttClient old = session.Fake;
-    await session.Service.ConnectAsync(TestSession.Settings, TestSession.Credentials, CancellationToken.None);
+    await session.Service.ConnectAsync(TestSession.Profile, TestSession.Credentials, CancellationToken.None);
     await session.DeliverTelemetryAsync(initial);
     Assert(!session.Service.CanOpen);
     await old.DeliverAsync(session.Message(TestSession.Settings.TelemetryTopic, session.Telemetry(500)));
@@ -199,13 +199,15 @@ await Test("broker denied subscription invalidates and disposes connection", asy
     var created = FakeMqttClient.Create();
     created.Fake.SubscriptionResult = (MqttClientSubscribeResultCode)128;
     GarageMqttService service = new(() => created.Client);
-    await ExpectAsync<InvalidOperationException>(() => service.ConnectAsync(TestSession.Settings, TestSession.Credentials, CancellationToken.None));
+    await ExpectAsync<InvalidOperationException>(() => service.ConnectAsync(TestSession.Profile, TestSession.Credentials, CancellationToken.None));
     Assert(!service.IsConnected && !service.CanOpen && created.Fake.Disposed);
 });
 
 await Test("real loopback TLS rejects fresh untrusted certificate", LocalTlsCheck.VerifyUntrustedCertificateRejectedAsync);
 
 await MainViewModelChecks.RunAsync(Test);
+await DeviceProfileStoreChecks.RunAsync(Test);
+await DeviceSessionChecks.RunAsync(Test);
 
 Console.WriteLine($"\n{passed} passed, {failures.Count} failed.");
 if (failures.Count != 0) Environment.ExitCode = 1;

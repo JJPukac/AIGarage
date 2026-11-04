@@ -14,17 +14,20 @@ iba na Androide 11+ so zaregistrovanou silnou biometriou.
 - [Architektúra a plán](docs/ARCHITECTURE.md): rozdelenie zodpovedností a ďalšie kroky pre Arduino/Raspberry Pi.
 - [Git workflow](docs/GIT_WORKFLOW.md): Visual Studio 2026, vetvy, commity a práca z dvoch laptopov cez účet Pukac.
 - [ESP32](firmware/README.md): zapojenie, provisioning, zostavenie a bezpečnostné hranice.
-- [Overenie A1](docs/validation/2026-11-03-A1.md): vykonané kontroly a otvorené praktické skúšky.
+- [Overenie A1](docs/validation/2026-11-03-A1.md): predchádzajúci krok MVVM a jeho praktické hranice.
+- [Overenie A2](docs/validation/2026-11-04-A2.md): profily zariadení, migrácia a kontrola oddelenia relácií.
 
-Aktuálne je implementovaný krok **A1**: obrazovka používa `MainViewModel`,
-testovateľné rozhrania a kompilované dátové väzby. MQTT protokol a ESP32
-firmware sa týmto krokom nemenia. Viac zariadení a simulátor sú ďalšie kroky.
+Aktuálne je implementovaný krok **A2**: katalóg najviac 32 pomenovaných profilov,
+stabilné lokálne ID, samostatné prihlasovacie údaje a nastaviteľné funkcie.
+Aplikácia používa jednu aktívnu reláciu. Načítanie iného profilu pôvodnú reláciu
+uzamkne a odpojí; nové prihlásenie ani otvorenie nevykoná automaticky.
+MQTT formát a ESP32 firmware zostávajú kompatibilné. Simulátor je ďalší krok.
 
 ## Súbory
 
 - `AIGarage.Mobile`: obrazovka garáže, nastavenia, SecureStorage, biometria,
   ViewModel, MQTTnet 4.3.7.1207, TLS a podpísané potvrdenia príkazov.
-- `AIGarage.Core`: konfigurácia, modely, HMAC protokol, kontrola čerstvosti
+- `AIGarage.Core`: konfigurácia, katalóg a funkcie zariadení, modely, HMAC protokol, kontrola čerstvosti
   a ochrana pred opakovaním správ, bez závislosti na MAUI.
 - `AIGarage.Core.Tests`: spustiteľné kontroly protokolu bez testovacích balíčkov.
 - `AIGarage.Mobile.Tests`: kontroly skutočného MQTT servisu s riadeným
@@ -60,8 +63,10 @@ Ak plán brokera nedovoľuje tieto ACL, zvoliť plán alebo broker, ktorý ich
 podporuje. Nedávať účtom prístup na všetky zariadenia cez `#`.
 
 V mobilnej aplikácii nastaviť režim Cloud, hostname bez `mqtts://`, TLS port,
-koreň tém, MQTT používateľa/heslo a HMAC kľúč. Tlačidlo „Uložiť a pripojiť“
-uloží prihlasovacie údaje cez SecureStorage a otvorí MQTT spojenie.
+koreň tém, názov zariadenia, jeho funkcie, MQTT používateľa/heslo a HMAC kľúč.
+Tlačidlo „Uložiť a pripojiť“ uloží profil a jeho prihlasovacie údaje cez
+SecureStorage a otvorí MQTT spojenie. Ďalší profil vytvoríte cez „Pridať nové
+zariadenie“. Pred úpravou existujúceho pripojenia sa odpojte a uzamknite.
 Budúce prihlásenie uloženými údajmi vyžaduje biometriu. Každé otvorenie brány
 vyžaduje nové biometrické potvrdenie. Pri prechode aplikácie do pozadia sa
 relácia uzamkne a odpojí; príkazy sa nikdy automaticky neopakujú.
@@ -122,6 +127,16 @@ História predchádzajúcich relácií sa zachová pri odpojení aj po odoslaní
 príkazu. Po 64 zmenách relácie v jednom behu aplikácia ďalšiu odmietne;
 nový beh aplikácie vytvorí novú históriu.
 
+História sa uchováva aj pri prepínaní profilov A → B → A. Najviac 64 rôznych
+identít témy/kľúča sa sleduje počas jedného behu; pri prekročení limitu
+sa nové spojenie odmietne bez vymazania starších záznamov. Profil s vypnutým
+otváraním nepovolí príkaz ani pri priamom volaní MQTT služby.
+
+Funkcie profilu opisujú používané merania a ovládanie. Nenainštalujú nový
+firmware ani nepridajú protokol pre inú dosku. Aj profil iba na meranie v tejto
+etape používa existujúci podpísaný formát vrátane položky `door`; univerzálny
+senzorový protokol a Arduino gateway patria do ďalších krokov.
+
 Príkaz vytvorí jediný 500 ms impulz. Žiadne sieťové ani senzorové operácie
 sa nevykonávajú počas aktívneho relé. Podpísané `pulsed` potvrdzuje ukončenie
 softvérového impulzu, **nie otvorenie brány**. Pri chybe alebo chýbajúcom
@@ -171,10 +186,11 @@ dotnet build AIGarage.Mobile -f net10.0-android
 dotnet build AIGarage.Mobile -f net10.0-windows10.0.19041.0
 ```
 
-Aktuálne testovacie programy obsahujú 77 kontrol spoločného protokolu a 52 kontrol
-mobilnej časti (25 MQTT + 27 ViewModel). Zahŕňajú odmietnutie nedôveryhodného TLS
-certifikátu, zrušenie prihlasovania/otvorenia pri prechode do pozadia a blokovanie
-príkazu po expirácii údajov počas biometrie. Podrobnosti sú v `docs/TESTING.md`.
+Aktuálne testovacie programy obsahujú 98 kontrol Core a 84 kontrol mobilnej
+časti, spolu 182. Zahŕňajú odmietnutie nedôveryhodného TLS certifikátu,
+zrušenie prihlasovania/otvorenia pri prechode do pozadia, oddelenie credentials,
+migráciu a replay ochranu pri prepínaní profilov. Podrobnosti sú v
+`docs/TESTING.md`.
 
 Firmware obsahuje čisté C++ kontroly interlocku. Pri príprave 10. 10. 2026
 prešiel ESP32 PlatformIO release build; 5 compile-time scenárov overilo 26

@@ -2,7 +2,7 @@ namespace AIGarage.Mobile.Services;
 
 public interface IUserInteraction
 {
-    Task<bool> ConfirmForgetCredentialsAsync();
+    Task<bool> ConfirmForgetCredentialsAsync(string profileName);
 }
 
 public interface IUiDispatcher

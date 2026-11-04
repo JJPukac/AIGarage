@@ -1,4 +1,5 @@
 using AIGarage.Core.Configuration;
+using AIGarage.Core.Devices;
 using AIGarage.Core.Models;
 using AIGarage.Mobile.Services;
 using AIGarage.Mobile.ViewModels;
@@ -63,11 +64,13 @@ internal sealed class ViewModelTestContext : IDisposable
         public Func<CancellationToken, Task>? OnConnect { get; set; }
         public Func<CancellationToken, Task<string>>? OnOpen { get; set; }
         public Func<Task>? OnDisconnect { get; set; }
+        public DeviceProfile? ConnectedProfile { get; private set; }
 
-        public async Task ConnectAsync(MqttSettings settings, BrokerCredentials credentials, CancellationToken token)
+        public async Task ConnectAsync(DeviceProfile profile, BrokerCredentials credentials, CancellationToken token)
         {
             ConnectCount++;
             if (OnConnect is not null) await OnConnect(token);
+            ConnectedProfile = profile;
             IsConnected = true;
             ConnectionChanged?.Invoke("Connected");
             Notify();
@@ -94,30 +97,32 @@ internal sealed class ViewModelTestContext : IDisposable
         public void Notify() => StateChanged?.Invoke();
     }
 
-    internal sealed class FakeCredentials : ICredentialStore
+    internal sealed class FakeCredentials : IDeviceProfileStore
     {
-        public MqttSettings? Settings { get; set; } = TestSession.Settings;
+        public DeviceCatalog Catalog { get; set; } = new() { Devices = new[] { TestSession.Profile }, SelectedDeviceId = TestSession.Profile.Id };
+        public MqttSettings? Settings => Catalog.Devices.FirstOrDefault()?.Connection;
         public BrokerCredentials? SavedCredentials { get; private set; } = TestSession.Credentials;
         public int SaveCount { get; private set; }
         public int LoadCount { get; private set; }
         public int ForgetCount { get; private set; }
         public Func<Task>? OnSave { get; set; }
-        public MqttSettings? LoadSettings() => Settings;
-        public async Task SaveAsync(MqttSettings settings, BrokerCredentials credentials)
+        public DeviceCatalog LoadCatalog() => Catalog;
+        public async Task SaveAsync(DeviceProfile profile, BrokerCredentials credentials)
         {
-            settings.Validate();
+            profile.Validate();
             var key = credentials.GetKey();
             System.Security.Cryptography.CryptographicOperations.ZeroMemory(key);
             SaveCount++;
             if (OnSave is not null) await OnSave();
-            Settings = settings; SavedCredentials = credentials;
+            Catalog = Catalog.WithProfile(profile); SavedCredentials = credentials;
         }
-        public Task<BrokerCredentials> LoadCredentialsAsync()
+        public Task<BrokerCredentials> LoadCredentialsAsync(DeviceProfile profile)
         {
             LoadCount++;
             return Task.FromResult(SavedCredentials ?? throw new InvalidOperationException("No saved credentials."));
         }
-        public void Forget() { ForgetCount++; Settings = null; SavedCredentials = null; }
+        public void Select(Guid id) => Catalog = Catalog.Select(id);
+        public void Remove(Guid id) { ForgetCount++; Catalog = Catalog.Without(id); SavedCredentials = null; }
     }
 
     internal sealed class FakeBiometrics : IBiometricGate
@@ -137,7 +142,7 @@ internal sealed class ViewModelTestContext : IDisposable
     {
         public bool Confirm { get; set; } = true;
         public Func<Task<bool>>? OnConfirm { get; set; }
-        public Task<bool> ConfirmForgetCredentialsAsync() => OnConfirm?.Invoke() ?? Task.FromResult(Confirm);
+        public Task<bool> ConfirmForgetCredentialsAsync(string profileName) => OnConfirm?.Invoke() ?? Task.FromResult(Confirm);
     }
 
     internal sealed class TestDispatcher : IUiDispatcher

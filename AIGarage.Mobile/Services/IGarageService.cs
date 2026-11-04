@@ -1,4 +1,4 @@
-using AIGarage.Core.Configuration;
+using AIGarage.Core.Devices;
 using AIGarage.Core.Models;
 
 namespace AIGarage.Mobile.Services;
@@ -12,7 +12,7 @@ public interface IGarageService
     GarageTelemetry? Telemetry { get; }
     bool IsTelemetryFresh { get; }
     bool CanOpen { get; }
-    Task ConnectAsync(MqttSettings settings, BrokerCredentials credentials, CancellationToken token);
+    Task ConnectAsync(DeviceProfile profile, BrokerCredentials credentials, CancellationToken token);
     Task<string> OpenAsync(CancellationToken token);
     Task DisconnectAsync();
 }

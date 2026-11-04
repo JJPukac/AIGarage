@@ -1,6 +1,7 @@
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using AIGarage.Core.Configuration;
+using AIGarage.Core.Devices;
 using AIGarage.Core.Models;
 using AIGarage.Core.Protocol;
 using MQTTnet;
@@ -20,7 +21,9 @@ public sealed class GarageMqttService : IGarageService
     private IMqttClient? _client;
     private SignedMessageCodec? _codec;
     private MqttSettings? _settings;
-    private string? _identity;
+    private readonly Dictionary<string, TelemetryGuard> _guards = new(StringComparer.Ordinal);
+    private const int MaximumReplayIdentities = 64;
+    private DeviceProfile? _profile;
     private PendingCommand? _pending;
 
     private sealed record PendingCommand(string Boot, long Sequence,
@@ -43,14 +46,15 @@ public sealed class GarageMqttService : IGarageService
         get
         {
             lock (_stateLock)
-                return _client?.IsConnected == true && _pending is null &&
+                return _client?.IsConnected == true && _profile?.Supports(DeviceCapabilities.OpenGarage) == true && _pending is null &&
                     _guard.CanOpen(DateTimeOffset.UtcNow);
         }
     }
 
-    public async Task ConnectAsync(MqttSettings settings, BrokerCredentials credentials, CancellationToken token)
+    public async Task ConnectAsync(DeviceProfile profile, BrokerCredentials credentials, CancellationToken token)
     {
-        settings.Validate();
+        profile.Validate();
+        var settings = profile.Connection;
         byte[] key = credentials.GetKey();
         try
         {
@@ -58,16 +62,24 @@ public sealed class GarageMqttService : IGarageService
             try
             {
                 await DisconnectInternalAsync();
-                var client = _clientFactory();
-                var codec = new SignedMessageCodec(key);
-                string identity = $"{settings.Host}:{settings.Port}/{settings.TopicRoot}/{Convert.ToHexString(SHA256.HashData(key))}";
+                // Signatures bind topic + key, not the transport address. Changing broker,
+                // DNS alias or port must not reset the same authenticated stream's history.
+                string identity = $"{settings.TopicRoot}/{Convert.ToHexString(SHA256.HashData(key))}";
                 lock (_stateLock)
                 {
-                    if (_identity != identity) _guard = new TelemetryGuard();
-                    _identity = identity;
+                    if (!_guards.TryGetValue(identity, out var guard))
+                    {
+                        // Eviction would let a previous session's messages become current again.
+                        if (_guards.Count >= MaximumReplayIdentities)
+                            throw new InvalidOperationException("Dosiahnutý limit identít zariadení. Reštartujte aplikáciu a prihláste sa znova.");
+                        _guards.Add(identity, guard = new TelemetryGuard());
+                    }
+                    _guard = guard;
                     _guard.BeginConnection();
-                    _client = client; _codec = codec; _settings = settings;
                 }
+                var client = _clientFactory();
+                var codec = new SignedMessageCodec(key);
+                lock (_stateLock) { _client = client; _codec = codec; _settings = settings; _profile = profile; }
                 client.ApplicationMessageReceivedAsync += args => OnMessageAsync(client, args);
                 client.DisconnectedAsync += _ =>
                 {
@@ -128,6 +140,7 @@ public sealed class GarageMqttService : IGarageService
             lock (_stateLock)
             {
                 if (_client?.IsConnected != true || _codec is null || _settings is null ||
+                    _profile?.Supports(DeviceCapabilities.OpenGarage) != true ||
                     _pending is not null || !_guard.CanOpen(DateTimeOffset.UtcNow))
                     throw new InvalidOperationException("Chýba aktuálne potvrdenie zatvorenej brány.");
                 var command = _commands.Create(_guard.Current!, DateTimeOffset.UtcNow);
@@ -211,7 +224,7 @@ public sealed class GarageMqttService : IGarageService
         lock (_stateLock)
         {
             client = _client; codec = _codec;
-            _client = null; _codec = null; _settings = null;
+            _client = null; _codec = null; _settings = null; _profile = null;
             _guard.ClearCurrent();
             _pending?.Completion.TrySetCanceled();
         }

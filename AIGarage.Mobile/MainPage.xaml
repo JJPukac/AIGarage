@@ -8,44 +8,59 @@
         <VerticalStackLayout Padding="24" Spacing="14" MaximumWidthRequest="640">
             <Label Text="AI Garage" FontSize="30" FontAttributes="Bold" SemanticProperties.HeadingLevel="Level1" />
             <Label Text="{Binding ConnectionText}" />
-            <Border Padding="18" StrokeShape="RoundRectangle 12">
+            <Label Text="Zariadenia" FontSize="20" FontAttributes="Bold" />
+            <Picker Title="Vyberte uložený profil" ItemsSource="{Binding ProfileNames}"
+                    SelectedIndex="{Binding SelectedProfileIndex, Mode=TwoWay}" IsEnabled="{Binding CanEditSettings}" />
+            <Button Text="Načítať vybraný profil a odpojiť" Command="{Binding LoadProfileCommand}" />
+            <Button Text="Pridať nové zariadenie" Command="{Binding NewProfileCommand}" />
+            <Label Text="Výber potvrďte načítaním profilu. Nové zariadenie sa pripája až po prihlásení." FontSize="12" />
+            <Label Text="{Binding ProfileName}" FontSize="22" FontAttributes="Bold" />
+            <Border Padding="18" StrokeShape="RoundRectangle 12" IsVisible="{Binding SupportsDoorState}">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="Garáž" FontSize="20" FontAttributes="Bold" />
                     <Label Text="{Binding DoorText}" FontSize="24" />
                     <Label Text="{Binding FreshnessText}" />
-                    <Button Text="Otvoriť garáž" IsEnabled="{Binding CanOpen}" Command="{Binding OpenCommand}"
+                    <Button Text="Otvoriť garáž" IsEnabled="{Binding CanOpen}" IsVisible="{Binding AllowsOpening}" Command="{Binding OpenCommand}"
                             SemanticProperties.Hint="Vyžaduje aktuálny zatvorený stav a biometrické potvrdenie." />
                     <Label Text="Pri jednom senzore vieme potvrdiť iba zatvorenú polohu. Pohyb po impulze je odhad." FontSize="12" />
                 </VerticalStackLayout>
             </Border>
-            <Border Padding="18" StrokeShape="RoundRectangle 12">
+            <Border Padding="18" StrokeShape="RoundRectangle 12" IsVisible="{Binding ShowsEnvironment}">
                 <VerticalStackLayout Spacing="6">
                     <Label Text="Prostredie" FontSize="20" FontAttributes="Bold" />
-                    <Label Text="{Binding TemperatureText}" />
-                    <Label Text="{Binding HumidityText}" />
-                    <Label Text="{Binding PressureText}" />
+                    <Label Text="{Binding TemperatureText}" IsVisible="{Binding SupportsTemperature}" />
+                    <Label Text="{Binding HumidityText}" IsVisible="{Binding SupportsHumidity}" />
+                    <Label Text="{Binding PressureText}" IsVisible="{Binding SupportsPressure}" />
                 </VerticalStackLayout>
             </Border>
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
             <Label Text="{Binding ResultText}" />
             <Label Text="Pripojenie a prihlásenie" FontSize="20" FontAttributes="Bold" />
-            <Picker Title="Režim pripojenia" SelectedIndex="{Binding ModeIndex, Mode=TwoWay}" IsEnabled="{Binding CanEditSettings}">
+            <Label Text="Na úpravu pripojenia sa najprv odpojte a uzamknite aplikáciu." FontSize="12" />
+            <Entry Text="{Binding ProfileName, Mode=TwoWay}" Placeholder="Názov zariadenia" MaxLength="64" IsEnabled="{Binding CanEditProfile}" />
+            <Picker Title="Režim pripojenia" SelectedIndex="{Binding ModeIndex, Mode=TwoWay}" IsEnabled="{Binding CanEditProfile}">
                 <Picker.Items>
                     <x:String>Cloud (Štádium 1)</x:String>
                     <x:String>Súkromný broker (Štádium 2)</x:String>
                 </Picker.Items>
             </Picker>
-            <Entry Text="{Binding Host, Mode=TwoWay}" Placeholder="Hostname MQTT brokera" Keyboard="Url" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditSettings}" />
-            <Entry Text="{Binding Port, Mode=TwoWay}" Placeholder="TLS port" Keyboard="Numeric" IsEnabled="{Binding CanEditSettings}" />
-            <Entry Text="{Binding TopicRoot, Mode=TwoWay}" Placeholder="Koreň tém" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditSettings}" />
-            <Entry Text="{Binding Username, Mode=TwoWay}" Placeholder="MQTT používateľ" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditSettings}" />
-            <Entry Text="{Binding Password, Mode=TwoWay}" Placeholder="MQTT heslo" IsPassword="True" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditSettings}" />
-            <Entry Text="{Binding HmacKeyHex, Mode=TwoWay}" Placeholder="HMAC kľúč (64 hex znakov)" IsPassword="True" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditSettings}" />
+            <Entry Text="{Binding Host, Mode=TwoWay}" Placeholder="Hostname MQTT brokera" Keyboard="Url" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditProfile}" />
+            <Entry Text="{Binding Port, Mode=TwoWay}" Placeholder="TLS port" Keyboard="Numeric" IsEnabled="{Binding CanEditProfile}" />
+            <Entry Text="{Binding TopicRoot, Mode=TwoWay}" Placeholder="Koreň tém, napr. aigarage/garage1" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditProfile}" />
+            <Label Text="Funkcie zariadenia" FontAttributes="Bold" />
+            <HorizontalStackLayout Spacing="10"><Switch IsToggled="{Binding SupportsDoorState, Mode=TwoWay}" IsEnabled="{Binding CanEditProfile}" /><Label Text="Sledovanie polohy brány" VerticalOptions="Center" /></HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="10"><Switch IsToggled="{Binding AllowsOpening, Mode=TwoWay}" IsEnabled="{Binding CanEditProfile}" /><Label Text="Otváranie garáže" VerticalOptions="Center" /></HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="10"><Switch IsToggled="{Binding SupportsTemperature, Mode=TwoWay}" IsEnabled="{Binding CanEditProfile}" /><Label Text="Teplota" VerticalOptions="Center" /></HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="10"><Switch IsToggled="{Binding SupportsHumidity, Mode=TwoWay}" IsEnabled="{Binding CanEditProfile}" /><Label Text="Vlhkosť" VerticalOptions="Center" /></HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="10"><Switch IsToggled="{Binding SupportsPressure, Mode=TwoWay}" IsEnabled="{Binding CanEditProfile}" /><Label Text="Tlak" VerticalOptions="Center" /></HorizontalStackLayout>
+            <Entry Text="{Binding Username, Mode=TwoWay}" Placeholder="MQTT používateľ" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditProfile}" />
+            <Entry Text="{Binding Password, Mode=TwoWay}" Placeholder="MQTT heslo" IsPassword="True" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditProfile}" />
+            <Entry Text="{Binding HmacKeyHex, Mode=TwoWay}" Placeholder="HMAC kľúč (64 hex znakov)" IsPassword="True" IsTextPredictionEnabled="False" IsEnabled="{Binding CanEditProfile}" />
             <Label Text="Údaje sa uložia bezpečne v zariadení. TLS a overenie certifikátu sú povinné v oboch režimoch." FontSize="12" />
             <Button Text="Uložiť a pripojiť" Command="{Binding LoginCommand}" />
             <Button Text="Prihlásiť uloženými údajmi cez biometriu" Command="{Binding UnlockCommand}" />
             <Button Text="Odpojiť a uzamknúť" Command="{Binding LogoutCommand}" />
-            <Button Text="Odstrániť uložené údaje" Command="{Binding ForgetCommand}" />
+            <Button Text="Odstrániť aktuálny profil a jeho údaje" Command="{Binding ForgetCommand}" />
             <Label Text="{Binding BiometricText}" FontSize="12" />
         </VerticalStackLayout>
     </ScrollView>
